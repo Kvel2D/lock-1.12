@@ -67,7 +67,7 @@ class Text {
 	// Non zero when an input string is being checked. So that I can use 
 	// the M and F keys without muting or changing to fullscreen.
 	public static var input_show = 0;
-	
+	public static var wordwrap = 0;
 
 	public static function init(stage:Stage) {
 		drawto = Gfx.backbuffer;
@@ -120,7 +120,7 @@ class Text {
 		input_responsecol = responsecol;
 		input_checkfortext();
 		
-		if (Input.just_pressed(Key.ENTER) && inputtext != "") {
+		if (Input.justpressed(Key.ENTER) && inputtext != "") {
 			return true;
 		}
 		return false;
@@ -160,6 +160,8 @@ class Text {
 	}
 	
 	public static function width(t:String):Float {
+		typeface[currentindex].updatebounds();
+
 		if (typeface[currentindex].type == "ttf") {
 			typeface[currentindex].tf_ttf.text = t;
 			return typeface[currentindex].tf_ttf.textWidth;
@@ -190,13 +192,16 @@ class Text {
 		return 0;
 	}
 	
-	public static function height():Float {
+	public static function height(?text: String):Float {
+		if (text == null) text = "?";
+		typeface[currentindex].updatebounds();
+
 		if (typeface[currentindex].type == "ttf") {
-			var oldtext:String = typeface[currentindex].tf_ttf.text;
-			typeface[currentindex].tf_ttf.text = "???";
-			var h:Float = typeface[currentindex].tf_ttf.textHeight;
-			typeface[currentindex].tf_ttf.text = oldtext;
-			return h;
+			// var oldtext:String = typeface[currentindex].tf_ttf.text;
+			// typeface[currentindex].tf_ttf.text = "???";
+			// var h:Float = typeface[currentindex].tf_ttf.textHeight;
+			typeface[currentindex].tf_ttf.text = text;
+			return typeface[currentindex].tf_ttf.textHeight;
 		}else if (typeface[currentindex].type == "bitmap") {
 			typeface[currentindex].tf_bitmap.text = "???";
 			return typeface[currentindex].height * currentsize;
@@ -214,11 +219,11 @@ class Text {
 			t2 = x - LEFT;
 			t3 = x - RIGHT;
 			if (t1 == 0 || (Math.abs(t1) < Math.abs(t2) && Math.abs(t1) < Math.abs(t3))) {
-				return t1 + Math.floor(Gfx.screen_widthMid - (cachedtext[c].width * currentsize / 2));
+				return t1 + Math.floor(Gfx.screenwidthMid - (cachedtext[c].width * currentsize / 2));
 			}else if (t2 == 0 || ((Math.abs(t2) < Math.abs(t1) && Math.abs(t2) < Math.abs(t3)))) {
 				return t2;
 			}else {
-				return t3 + Math.floor(Gfx.screen_width - (cachedtext[c].width * currentsize));
+				return t3 + Math.floor(Gfx.screenwidth - (cachedtext[c].width * currentsize));
 			}
 		}
 		
@@ -231,11 +236,11 @@ class Text {
 			t2 = y - TOP;
 			t3 = y - BOTTOM;
 			if (t1 == 0 || (Math.abs(t1) < Math.abs(t2) && Math.abs(t1) < Math.abs(t3))) {
-				return t1 + Math.floor(Gfx.screen_heightMid - cachedtext[c].height * currentsize / 2);
+				return t1 + Math.floor(Gfx.screenheightMid - cachedtext[c].height * currentsize / 2);
 			}else if (t2 == 0 || ((Math.abs(t2) < Math.abs(t1) && Math.abs(t2) < Math.abs(t3)))) {
 				return t2;
 			}else {
-				return t3 + Math.floor(Gfx.screen_height - (cachedtext[c].height * currentsize));
+				return t3 + Math.floor(Gfx.screenheight - (cachedtext[c].height * currentsize));
 			}
 		}
 		
@@ -278,11 +283,11 @@ class Text {
 			t2 = x - LEFT;
 			t3 = x - RIGHT;
 			if (t1 == 0 || (Math.abs(t1) < Math.abs(t2) && Math.abs(t1) < Math.abs(t3))) {
-				return t1 + Math.floor(Gfx.screen_widthMid - (currentwidth() / 2));
+				return t1 + Math.floor(Gfx.screenwidthMid - (currentwidth() / 2));
 			}else if (t2 == 0 || ((Math.abs(t2) < Math.abs(t1) && Math.abs(t2) < Math.abs(t3)))) {
 				return t2;
 			}else {
-				return t3 + Math.floor(Gfx.screen_width - currentwidth());
+				return t3 + Math.floor(Gfx.screenwidth - currentwidth());
 			}
 		}
 		
@@ -304,11 +309,11 @@ class Text {
 			t2 = y - TOP;
 			t3 = y - BOTTOM;
 			if (t1 == 0 || (Math.abs(t1) < Math.abs(t2) && Math.abs(t1) < Math.abs(t3))) {
-				return t1 + Math.floor(Gfx.screen_heightMid - currentheight() / 2);
+				return t1 + Math.floor(Gfx.screenheightMid - currentheight() / 2);
 			}else if (t2 == 0 || ((Math.abs(t2) < Math.abs(t1) && Math.abs(t2) < Math.abs(t3)))) {
 				return t2;
 			}else {
-				return t3 + Math.floor(Gfx.screen_height - currentheight());
+				return t3 + Math.floor(Gfx.screenheight - currentheight());
 			}
 		}
 		
@@ -478,6 +483,8 @@ class Text {
 		if (text == null) {
 			text = "";
 		}
+
+		typeface[currentindex].updatebounds();
 
 		typeface[currentindex].tf_ttf.textColor = col;
 		typeface[currentindex].tf_ttf.text = text;

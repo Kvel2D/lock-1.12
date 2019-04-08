@@ -1,23 +1,31 @@
 package haxegon;
 
-import haxe.ds.Vector;
+typedef Vec2f = {
+    x: Float,
+    y: Float
+}
+
+typedef Vec2i = {
+    x: Int,
+    y: Int
+}
 
 @:publicFields
 class MathExtensions {
 
-    static function project_circle(math: Class<Math> = null, x: Float, y: Float, r: Float, axis: Vector2): Vector2 {
+    static function project_circle(math: Class<Math> = null, x: Float, y: Float, r: Float, axis: Vec2f): Vec2f {
         var dot = dot(x, y, axis.x, axis.y);
         return {x: dot - r, y: dot + r};
     }
 
-    static function project_triangle(math: Class<Math> = null, tri: Array<Float>, axis: Vector2): Vector2 {
+    static function project_triangle(math: Class<Math> = null, tri: Array<Float>, axis: Vec2f): Vec2f {
         var dot1 = dot(tri[0], tri[1], axis.x, axis.y);
         var dot2 = dot(tri[2], tri[3], axis.x, axis.y);
         var dot3 = dot(tri[4], tri[5], axis.x, axis.y);
         return {x: min3(dot1, dot2, dot3), y: max3(dot1, dot2, dot3)};
     }
 
-    static function project_rectangle(math: Class<Math> = null, x: Float, y: Float, width: Float, height: Float, axis: Vector2): Vector2 {
+    static function project_rectangle(math: Class<Math> = null, x: Float, y: Float, width: Float, height: Float, axis: Vec2f): Vec2f {
         var dot1 = dot(x, y, axis.x, axis.y);
         var dot2 = dot(x + width, y, axis.x, axis.y);
         var dot3 = dot(x, y + height, axis.x, axis.y);
@@ -63,16 +71,16 @@ class MathExtensions {
         }
     }
 
-    static function max3(math: Class<Math> = null, x1: Float, x2: Float, x3: Float): Float {
+    static inline function max3(math: Class<Math> = null, x1: Float, x2: Float, x3: Float): Float {
         return Math.max(Math.max(x1, x2), x3);
     }
-    static function max4(math: Class<Math> = null, x1: Float, x2: Float, x3: Float, x4: Float): Float {
+    static inline function max4(math: Class<Math> = null, x1: Float, x2: Float, x3: Float, x4: Float): Float {
         return Math.max(Math.max(Math.max(x1, x2), x3), x4);
     }
-    static function min3(math: Class<Math> = null, x1: Float, x2: Float, x3: Float): Float {
+    static inline function min3(math: Class<Math> = null, x1: Float, x2: Float, x3: Float): Float {
         return Math.min(Math.min(x1, x2), x3);
     }
-    static function min4(math: Class<Math> = null, x1: Float, x2: Float, x3: Float, x4: Float): Float {
+    static inline function min4(math: Class<Math> = null, x1: Float, x2: Float, x3: Float, x4: Float): Float {
         return Math.min(Math.min(Math.min(x1, x2), x3), x4);
     }
 
@@ -107,7 +115,7 @@ class MathExtensions {
         return vertices;
     }
 
-    static function rotate_vector(math: Class<Math> = null, point: Vector2, origin_x: Float, origin_y: Float, angle: Float) {
+    static function rotate_vector(math: Class<Math> = null, point: Vec2f, origin_x: Float, origin_y: Float, angle: Float) {
         var cos = Math.cos(deg_to_rad(angle));
         var sin = Math.sin(deg_to_rad(angle));
         point.x -= origin_x;
@@ -120,18 +128,18 @@ class MathExtensions {
         point.y += origin_y;
     }
 
-    static function dot(math: Class<Math> = null, ux: Float, uy: Float, vx: Float, vy: Float): Float {
+    static inline function dot(math: Class<Math> = null, ux: Float, uy: Float, vx: Float, vy: Float): Float {
         return ux * vx + uy * vy;
     }
 
-    static function normalize(math: Class<Math> = null, v: Vector2): Vector2 {
+    static function normalize(math: Class<Math> = null, v: Vec2f): Vec2f {
         var length = Math.sqrt(v.x * v.x + v.y * v.y);
         v.x /= length;
         v.y /= length;
         return v;
     }
 
-    static function project(math: Class<Math> = null, ux: Float, uy: Float, vx: Float, vy: Float): Vector2 {
+    static function project(math: Class<Math> = null, ux: Float, uy: Float, vx: Float, vy: Float): Vec2f {
         var dp = dot(ux, uy, vx, vy);
         var result = {
             x: (dp / (vx * vx + vy * vy)) * ux, 
@@ -140,17 +148,17 @@ class MathExtensions {
         return result;
     }
 
-    static function line_point_sign(math: Class<Math> = null, px: Float, py: Float, lx1: Float, ly1: Float, lx2: Float, ly2: Float): Float {
+    static inline function line_point_sign(math: Class<Math> = null, px: Float, py: Float, lx1: Float, ly1: Float, lx2: Float, ly2: Float): Float {
         return (px - lx2) * (ly1 - ly2) - (lx1 - lx2) * (py - ly2);
     }
 
-    static function poly_centroid(math: Class<Math> = null, poly: Array<Float>): Vector2 {
+    static function poly_centroid(math: Class<Math> = null, poly: Array<Float>): Vec2f {
         var off = {x: poly[0], y: poly[1]};
         var twicearea = 0.0;
         var x = 0.0;
         var y = 0.0;
-        var p1: Vector2;
-        var p2: Vector2;
+        var p1: Vec2f;
+        var p2: Vec2f;
         var f: Float;
         var i = 0;
         var j = Std.int(poly.length / 2 - 1);
@@ -171,7 +179,7 @@ class MathExtensions {
 
     static function line_line_intersect(math: Class<Math> = null,
         p0_x: Float, p0_y: Float, p1_x: Float, p1_y: Float, 
-        p2_x: Float, p2_y: Float, p3_x: Float, p3_y: Float, intersection: Vector2 = null): Bool
+        p2_x: Float, p2_y: Float, p3_x: Float, p3_y: Float, intersection: Vec2f = null): Bool
     {
         var s1_x = p1_x - p0_x;     
         var s1_y = p1_y - p0_y;
@@ -192,17 +200,17 @@ class MathExtensions {
         }
     }
 
-    static function point_box_intersect(math: Class<Math> = null, point_x: Float, point_y: Float, box_x: Float, box_y: Float, box_width: Float, box_height: Float): Bool {
-        return point_x > box_x && point_x < box_x + box_width && point_y > box_y && point_y < box_y + box_height;
+    static inline function point_box_intersect(math: Class<Math> = null, point_x: Float, point_y: Float, box_x: Float, box_y: Float, box_width: Float, box_height: Float): Bool {
+        return point_x >= box_x && point_x < box_x + box_width && point_y >= box_y && point_y < box_y + box_height;
     }
 
-    static function box_box_intersect(math: Class<Math> = null, 
+    static inline function box_box_intersect(math: Class<Math> = null, 
         x1: Float, y1: Float, width1: Float, height1: Float,
         x2: Float, y2: Float, width2: Float, height2: Float): Bool {
         return x1 < x2 + width2 && x1 + width1 > x2 && y1 < y2 + height2 && y1 + height1 > y2;
     }
 
-    static function circle_circle_intersect(math: Class<Math> = null, x1: Float, y1: Float, r1: Float, x2: Float, y2: Float, r2: Float): Bool {
+    static inline function circle_circle_intersect(math: Class<Math> = null, x1: Float, y1: Float, r1: Float, x2: Float, y2: Float, r2: Float): Bool {
         return dst2(x1, y1, x2, y2) < r1 * r1 + r2 * r2;
     }
 
@@ -311,7 +319,7 @@ class MathExtensions {
         return x1 + (x2 - x1) * a;
     }
 
-    static function mean(math: Class<Math> = null, v: Vector<Float>): Float {
+    static function mean(math: Class<Math> = null, v: Array<Float>): Float {
         var mean = 0.0;
         for (i in 0...v.length) {
             mean += v[i];
@@ -320,7 +328,7 @@ class MathExtensions {
         return mean;
     }
 
-    static function std_dev(math: Class<Math> = null, v: Vector<Float>): Float {
+    static function std_dev(math: Class<Math> = null, v: Array<Float>): Float {
         var mean = mean(v);
         var std_dev = 0.0;
         for (i in 0...v.length) {
@@ -330,7 +338,7 @@ class MathExtensions {
         return std_dev;
     }
 
-    static function inner_product(math: Class<Math> = null, m1: Vector<Float>, m2: Vector<Float>): Float {
+    static function inner_product(math: Class<Math> = null, m1: Array<Float>, m2: Array<Float>): Float {
         var out = 0.0;
         for (i in 0...m1.length) {
             out += m1[i] * m2[i];
@@ -338,9 +346,9 @@ class MathExtensions {
         return out;
     }
     
-    static function outer_product(math: Class<Math> = null, v1: Vector<Float>, v2: Vector<Float>, out: Vector<Vector<Float>> = null): Vector<Vector<Float>> {
+    static function outer_product(math: Class<Math> = null, v1: Array<Float>, v2: Array<Float>, out: Array<Array<Float>> = null): Array<Array<Float>> {
         if (out == null) {
-            out = Data.float_2dvector(v1.length, v2.length);
+            out = Data.create2darray(v1.length, v2.length, 0.0);
         }
         for (i in 0...out.length) {
             for (j in 0...out[i].length) {
@@ -350,9 +358,9 @@ class MathExtensions {
         return out;
     }
 
-    static function mat_transpose(math: Class<Math> = null, m: Vector<Vector<Float>>, out: Vector<Vector<Float>> = null): Vector<Vector<Float>> {
+    static function mat_transpose(math: Class<Math> = null, m: Array<Array<Float>>, out: Array<Array<Float>> = null): Array<Array<Float>> {
         if (out == null) {
-            out = Data.float_2dvector(m[0].length, m.length);
+            out = Data.create2darray(m[0].length, m.length, 0.0);
         }
         for (i in 0...out.length) {
             for (j in 0...out[i].length) {
@@ -362,9 +370,9 @@ class MathExtensions {
         return out;
     }
 
-    static function mat_add(math: Class<Math> = null, m1: Vector<Vector<Float>>, m2: Vector<Vector<Float>>, out: Vector<Vector<Float>> = null): Vector<Vector<Float>> {
+    static function mat_add(math: Class<Math> = null, m1: Array<Array<Float>>, m2: Array<Array<Float>>, out: Array<Array<Float>> = null): Array<Array<Float>> {
         if (out == null) {
-            out = Data.float_2dvector(m1.length, m1[0].length);
+            out = Data.create2darray(m1.length, m1[0].length, 0.0);
         }
         for (i in 0...out.length) {
             for (j in 0...out[i].length) {
@@ -374,9 +382,9 @@ class MathExtensions {
         return out;
     }
 
-    static function mat_dot(math: Class<Math> = null, m1: Vector<Vector<Float>>, m2: Vector<Vector<Float>>, out: Vector<Vector<Float>> = null): Vector<Vector<Float>> {
+    static function mat_dot(math: Class<Math> = null, m1: Array<Array<Float>>, m2: Array<Array<Float>>, out: Array<Array<Float>> = null): Array<Array<Float>> {
         if (out == null) {
-            out = Data.float_2dvector(m1.length, m2[0].length);
+            out = Data.create2darray(m1.length, m2[0].length, 0.0);
         }
         var sum: Float;
         for (i in 0...m1.length) {
@@ -391,9 +399,9 @@ class MathExtensions {
         return out;
     }
 
-    static function mat_scalar_mult(math: Class<Math> = null, m: Vector<Vector<Float>>, s: Float, out: Vector<Vector<Float>> = null): Vector<Vector<Float>> {
+    static function mat_scalar_mult(math: Class<Math> = null, m: Array<Array<Float>>, s: Float, out: Array<Array<Float>> = null): Array<Array<Float>> {
         if (out == null) {
-            out = Data.float_2dvector(m.length, m[0].length);
+            out = Data.create2darray(m.length, m[0].length, 0.0);
         }
         for (i in 0...m.length) {
             for (j in 0...m[i].length) {
@@ -403,9 +411,9 @@ class MathExtensions {
         return out;
     }
 
-    static function hadamard_product(math: Class<Math> = null, m1: Vector<Vector<Float>>, m2: Vector<Vector<Float>>, out: Vector<Vector<Float>> = null): Vector<Vector<Float>> {
+    static function hadamard_product(math: Class<Math> = null, m1: Array<Array<Float>>, m2: Array<Array<Float>>, out: Array<Array<Float>> = null): Array<Array<Float>> {
         if (out == null) {
-            out = Data.float_2dvector(m1.length, m2[0].length);
+            out = Data.create2darray(m1.length, m2[0].length, 0.0);
         }
         for (i in 0...m1.length) {
             for (j in 0...m2[0].length) {
@@ -415,9 +423,9 @@ class MathExtensions {
         return out;
     }
 
-    static function kronecker_product(math: Class<Math> = null, v1: Vector<Float>, v2: Vector<Float>, out: Vector<Vector<Float>> = null): Vector<Vector<Float>> {
+    static function kronecker_product(math: Class<Math> = null, v1: Array<Float>, v2: Array<Float>, out: Array<Array<Float>> = null): Array<Array<Float>> {
         if (out == null) {
-            out = Data.float_2dvector(v1.length * v2.length, v1.length * v2.length);
+            out = Data.create2darray(v1.length * v2.length, v1.length * v2.length, 0.0);
         }
         for (i in 0...v1.length) {
             for (j in 0...v1.length) {
@@ -427,9 +435,9 @@ class MathExtensions {
         return out;
     }
 
-    static function mat_concat_horizontal(math: Class<Math> = null, m1: Vector<Vector<Float>>, m2: Vector<Vector<Float>>, out: Vector<Vector<Float>> = null): Vector<Vector<Float>> {
+    static function mat_concat_horizontal(math: Class<Math> = null, m1: Array<Array<Float>>, m2: Array<Array<Float>>, out: Array<Array<Float>> = null): Array<Array<Float>> {
         if (out == null) {
-            out = Data.float_2dvector(m1.length, m1[0].length + m2[0].length);
+            out = Data.create2darray(m1.length, m1[0].length + m2[0].length, 0.0);
         }
         var m1Width = m1[0].length;
         for (i in 0...out.length) {
@@ -483,7 +491,7 @@ class MathExtensions {
         } else {
             indices = [for (i in 0...vertex_count) vertex_count - 1 - i];
         }
-        
+
         function get_previous_index(index: Int): Int {
             if (index == 0) {
                 return vertex_count - 1;
@@ -511,7 +519,7 @@ class MathExtensions {
         var vertex_types = [for (i in 0...vertex_count) get_vertex_type(i)];
         var triangles = new Array<Int>();
 
-        
+
         function is_ear_tip(index: Int): Bool {
             if (vertex_types[index] == CONCAVE) {
                 return false;
@@ -601,5 +609,57 @@ class MathExtensions {
         ]
         ];
         return triangles;
+    }
+
+    static function fill_circle_map(math: Class<Math> = null, radius: Int): Array<Array<Bool>> {
+
+        var diameter = 2 * radius;
+        var x = radius - 1;
+        var y = 0;
+        var dx = 1;
+        var dy = 1;
+        var err = dx - diameter;
+        var x0 = radius;
+        var y0 = radius;
+
+        var map = [for (i in 0...diameter) [for (i in 0...diameter) false]];
+
+        while (x >= y) {
+            map[x0 + x][y0 + y] = true;
+            map[x0 + y][y0 + x] = true;
+            map[x0 - y][y0 + x] = true;
+            map[x0 - x][y0 + y] = true;
+            map[x0 - x][y0 - y] = true;
+            map[x0 - y][y0 - x] = true;
+            map[x0 + y][y0 - x] = true;
+            map[x0 + x][y0 - y] = true;
+
+            if (err <= 0) {
+                y++;
+                err += dy;
+                dy += 2;
+            }
+
+            if (err > 0) {
+                x--;
+                dx += 2;
+                err += dx - diameter;
+            }
+        }
+
+        for (x in 0...diameter) {
+            y = 0;
+            while (y < diameter) {
+                if (map[x][y]) {
+                    for (y2 in (y + 1)...(diameter - y)) {
+                        map[x][y2] = true;
+                    }
+                    break;
+                }
+                y++;
+            }
+        }
+
+        return map;
     }
 }

@@ -81,7 +81,7 @@ class Core extends Sprite {
         Music.init();
 
         //Default setup
-        Gfx.resize_screen(768, 480);
+        Gfx.resizescreen(768, 480);
         Text.setfont("opensans", 24);
 
         main = new Main();
@@ -176,7 +176,7 @@ class Core extends Sprite {
 
         if (!Gfx.skiprender) {
             Gfx.drawto.lock();
-            if (Gfx.clearscreeneachframe) Gfx.clear_screen();
+            if (Gfx.clearscreeneachframe) Gfx.clearscreen();
         }
         main.update();
         if (!Gfx.skiprender) {

@@ -27,17 +27,17 @@ class Mouse {
 	private static var _rightcurrent:Int;
 	private static var _rightlast:Int;
 	
-	public static function left_held():Bool { return _current > 0; }
-	public static function left_click():Bool { return _current == 2; }
-	public static function left_released():Bool { return _current == -1; }
+	public static function leftheld():Bool { return _current > 0; }
+	public static function leftclick():Bool { return _current == 2; }
+	public static function leftreleased():Bool { return _current == -1; }
 	
-	public static function right_held():Bool { return _rightcurrent > 0; }
-	public static function right_click():Bool { return _rightcurrent == 2; }	
-	public static function right_released():Bool { return _rightcurrent == -1; }
+	public static function rightheld():Bool { return _rightcurrent > 0; }
+	public static function rightclick():Bool { return _rightcurrent == 2; }	
+	public static function rightreleased():Bool { return _rightcurrent == -1; }
 	
-	public static function middle_held():Bool { return _middlecurrent > 0; }
-	public static function middle_click():Bool { return _middlecurrent == 2; }	
-	public static function middle_released():Bool { return _middlecurrent == -1; }
+	public static function middleheld():Bool { return _middlecurrent > 0; }
+	public static function middleclick():Bool { return _middlecurrent == 2; }	
+	public static function middlereleased():Bool { return _middlecurrent == -1; }
 	
 	private static function init(stage:DisplayObject) {
 		// disable html5's context menu

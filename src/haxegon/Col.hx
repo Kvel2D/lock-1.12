@@ -27,6 +27,18 @@ class Col {
 
     public static var TRANSPARENT:Int = 0x000001;
 
+    public static function r(color: Int) {
+    	return color >> 16;
+    }
+
+    public static function g(color: Int) {
+    	return (color & 0x00FF00) >> 8;
+    }
+
+    public static function b(color: Int) {
+    	return color & 0x0000FF;
+    }
+
     public static function rgb(r: Int, g: Int, b: Int): Int {
         return (r << 16) | (g << 8) | b;
     }

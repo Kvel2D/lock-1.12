@@ -22,10 +22,10 @@ import openfl.desktop.ClipboardFormats;
 #end
 
 enum Keystate {
-	just_released;
+	justreleased;
 	notpressed;
 	pressed;
-	just_pressed;
+	justpressed;
 	force_release;
 }
 
@@ -35,8 +35,8 @@ class Input {
 		return keyheld[keymap.get(k)] >= 0;
 	}
 	
-	public static function just_pressed(k:Key):Bool { 
-		if (current[keymap.get(k)] == Keystate.just_pressed) {
+	public static function justpressed(k:Key):Bool { 
+		if (current[keymap.get(k)] == Keystate.justpressed) {
 			//current[keymap.get(k)] = Keystate.pressed;
 			return true;
 		}else {
@@ -44,8 +44,8 @@ class Input {
 		}
 	}
 	
-	public static function just_released(k:Key):Bool { 
-		if (current[keymap.get(k)] == Keystate.just_released) {
+	public static function justreleased(k:Key):Bool { 
+		if (current[keymap.get(k)] == Keystate.justreleased) {
 			current[keymap.get(k)] = Keystate.notpressed;
 			return true;
 		}else {
@@ -53,7 +53,7 @@ class Input {
 		}
 	}
 	
-	public static function force_release(k:Key):Void {
+	public static function forcerelease(k:Key):Void {
 		keycode = keymap.get(k);
 		if (keyheld[keycode] >= 0) {
 			current[keycode] = Keystate.force_release;
@@ -72,7 +72,7 @@ class Input {
 	// The second TRUE is on frame 2.35*repeatframes
 	// The next is on frame 3.35*repeatframes...
 	// and after (instantreps) repeats, it returns TRUE every frame
-	public static function delay_pressed(k:Key, repeatframes:Int, ?instantreps:Int=-1):Bool {
+	public static function delaypressed(k:Key, repeatframes:Int, ?instantreps:Int=-1):Bool {
 		keycode = keymap.get(k);
 		if (keyheld[keycode] >= 1) {
 			if (keyheld[keycode] == 1) {
@@ -204,11 +204,11 @@ class Input {
 
 		for (i in 0 ... numletters) {
 			if (lookup.exists(i)) {
-				if ((last[i] == Keystate.just_released) && (current[i] == Keystate.just_released)) current[i] = Keystate.notpressed;
-				else if ((last[i] == Keystate.just_pressed) && (current[i] == Keystate.just_pressed)) current[i] = Keystate.pressed;
+				if ((last[i] == Keystate.justreleased) && (current[i] == Keystate.justreleased)) current[i] = Keystate.notpressed;
+				else if ((last[i] == Keystate.justpressed) && (current[i] == Keystate.justpressed)) current[i] = Keystate.pressed;
 				last[i] = current[i];
 				
-				if (current[i] == Keystate.just_pressed || current[i] == Keystate.pressed) {
+				if (current[i] == Keystate.justpressed || current[i] == Keystate.pressed) {
 					++keyheld[i];
 				}
 			}
@@ -226,7 +226,7 @@ class Input {
 	}
 	
 	private static function iskeycodeheld(k:Keystate):Bool {
-		if (k == Keystate.just_pressed || k == Keystate.pressed) {
+		if (k == Keystate.justpressed || k == Keystate.pressed) {
 			return true;
 		}
 		return false;
@@ -295,7 +295,7 @@ class Input {
 		if (charcode == 91 || charcode == 93 || charcode == 224 || charcode == 17) {	
 			for (keycode in 0 ... numletters){				
 				if (iskeycodeheld(current[keycode])) {
-					current[keycode] = Keystate.just_released;
+					current[keycode] = Keystate.justreleased;
 				}else {
 					current[keycode] = Keystate.notpressed;
 				}
@@ -342,7 +342,7 @@ class Input {
 			if (iskeycodeheld(current[keycode])) {
 				current[keycode] = Keystate.pressed;
 			}else {
-				current[keycode] = Keystate.just_pressed;
+				current[keycode] = Keystate.justpressed;
 				keyheld[keycode] = 0;
 			}
 		}
@@ -395,7 +395,7 @@ class Input {
 
 			if (lookup.exists(keycode)) {
 				if (iskeycodeheld(current[keycode])) {
-					current[keycode] = Keystate.just_released;
+					current[keycode] = Keystate.justreleased;
 				}else {
 					current[keycode] = Keystate.notpressed;
 				}

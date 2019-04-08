@@ -1,8 +1,34 @@
 package haxegon;
 
+typedef ValPickPair = {
+    v: Dynamic, // value
+    c: Float    // chance that value is picked
+};
+
 class Random {
 	private static var temp: Int;
 	public static var seed: Int = 0;
+
+	public static function pick_chance(pairs: Array<ValPickPair>): Dynamic {
+		var total = 0.0;
+		for (e in pairs) {
+			total += e.c;
+		}
+		for (i in 1...pairs.length) {
+			pairs[i].c += pairs[i - 1].c;
+		}
+
+		var k = Random.float(0, total);
+
+		for (e in pairs) {
+			if (k <= e.c) {
+				return e.v;
+			}
+		}
+
+		trace('value() failed');
+		return pairs[0].v;
+	}
 
 	// Generate a random number from normal distribution.
 	// Source: phoxis.org/2013/05/04/generating-random-numbers-from-normal-distribution-in-c/
@@ -32,6 +58,7 @@ class Random {
 		}
 	}
 
+	// modifies array in-place
 	public static function shuffle<T>(array: Array<T>): Array<T> {
 		if (array != null) {
 			for (i in 0...array.length) {

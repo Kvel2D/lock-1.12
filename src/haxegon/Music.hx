@@ -141,7 +141,7 @@ class Music {
 	
 	private static function processmute() {
 		if (Text.input_show == 0) {
-			if (Input.just_pressed(Key.M) && mutebutton <= 0) {
+			if (Input.justpressed(Key.M) && mutebutton <= 0) {
 				mutebutton = 2; if (muted) { muted = false; }else { muted = true;}
 			}
 			if (mutebutton > 0 && !Input.pressed(Key.M)) mutebutton--;

@@ -33,15 +33,15 @@ class GUI {
 	}
 
 	static function image_button(x: Float, y: Float, image: String, button_function: Void->Void) {
-		var image_width = Gfx.image_width(image);
-		var image_height = Gfx.image_height(image);
+		var image_width = Gfx.imagewidth(image);
+		var imageheight = Gfx.imageheight(image);
 		var button_width = image_width * 1.1;
-		var button_height = image_height * 1.1;
+		var button_height = imageheight * 1.1;
 
-		if (Mouse.left_click() && Math.point_box_intersect(Mouse.x, Mouse.y, x, y, button_width, button_height)) {
+		if (Mouse.leftclick() && Math.point_box_intersect(Mouse.x, Mouse.y, x, y, button_width, button_height)) {
 			button_function();
 		}
-		Gfx.draw_image(x, y, image);
+		Gfx.drawimage(x, y, image);
 	}
 
 	static function auto_text_button(text: String, button_function: Void->Void, skips: Int = 0) {
@@ -61,13 +61,13 @@ class GUI {
 		var button_height = text_height * 1.25;
 
 		if (Math.point_box_intersect(Mouse.x, Mouse.y, button_x, button_y, button_width, button_height)) {
-			Gfx.fill_box(button_x, button_y, button_width, button_height, button_on_color);
-			if (Mouse.left_click()) {
+			Gfx.fillbox(button_x, button_y, button_width, button_height, button_on_color);
+			if (Mouse.leftclick()) {
 				button_function();
 			}
 			Text.display(button_x, button_y, text, button_text_on_color);
 		} else {
-			Gfx.fill_box(button_x, button_y, button_width, button_height, button_off_color);
+			Gfx.fillbox(button_x, button_y, button_width, button_height, button_off_color);
 			Text.display(button_x, button_y, text, button_text_off_color);
 		}
 	}
@@ -92,12 +92,12 @@ class GUI {
 		var height = text_height * 1.25;
 
 
-		Gfx.fill_box(slider_x, slider_y, area_width, height, slider_background_color);
-		Gfx.fill_box(slider_x + area_width * (current - min) / (max - min), slider_y + height * 0.05, handle_width, height * 0.9, slider_handle_color);
+		Gfx.fillbox(slider_x, slider_y, area_width, height, slider_background_color);
+		Gfx.fillbox(slider_x + area_width * (current - min) / (max - min), slider_y + height * 0.05, handle_width, height * 0.9, slider_handle_color);
 
 		var hash = '${text}_${slider_x}_${slider_y}';
 		if (slider_cache.hash == hash) {
-			if (slider_cache.dragged && Mouse.left_held()) {
+			if (slider_cache.dragged && Mouse.leftheld()) {
 				var value = current;
 				if (Mouse.x < slider_x) {
 					value = min;
@@ -111,16 +111,16 @@ class GUI {
 				slider_cache.hash = "";
 			}
 		} else {
-			if (Mouse.left_click() || Mouse.right_click()) {
+			if (Mouse.leftclick() || Mouse.rightclick()) {
 				if (Math.point_box_intersect(Mouse.x, Mouse.y, slider_x - area_width * 0.1, y - height * 0.5, area_width * 1.2, height * 1.1)) {
-					if (Mouse.left_click()) {
+					if (Mouse.leftclick()) {
 						slider_cache.hash = hash;
 						slider_cache.dragged = true;
 
 						if (!slider_defaults.exists(hash)) {
 							slider_defaults[hash] = current;
 						}
-					} else if (Mouse.right_click()) {
+					} else if (Mouse.rightclick()) {
 						if (slider_defaults.exists(hash)) {
 							set_function(slider_defaults[hash]);
 						}
@@ -181,7 +181,7 @@ class GUI {
 					editable_cache.hash = "";
 				}
 			}
-		} else if (Mouse.left_click() 
+		} else if (Mouse.leftclick() 
 			&& !editable_cache.editing 
 			&& Math.point_box_intersect(Mouse.x, Mouse.y, editable_x, editable_y, Text.width(text) + Text.width('${current}') * 1.25, Text.height() * 1.25)) 
 		{
@@ -200,34 +200,34 @@ class GUI {
 		Text.display(x, y, text + input, col1);
 		Text.display(x + Text.width(text + input), y, '_', col1);
 
-		if (Input.just_pressed(Key.ENTER)) {
+		if (Input.justpressed(Key.ENTER)) {
 			return true;
 		} else {
-			if (Input.just_pressed(Key.BACKSPACE)) {
+			if (Input.justpressed(Key.BACKSPACE)) {
 				if (input.length > 0) {
 					input = input.substring(0, input.length - 1);
 				}
-			} else if (Input.just_pressed(Key.ZERO)) {
+			} else if (Input.justpressed(Key.ZERO)) {
 				input += '0';
-			} else if (Input.just_pressed(Key.ONE)) {
+			} else if (Input.justpressed(Key.ONE)) {
 				input += '1';
-			} else if (Input.just_pressed(Key.TWO)) {
+			} else if (Input.justpressed(Key.TWO)) {
 				input += '2';
-			} else if (Input.just_pressed(Key.THREE)) {
+			} else if (Input.justpressed(Key.THREE)) {
 				input += '3';
-			} else if (Input.just_pressed(Key.FOUR)) {
+			} else if (Input.justpressed(Key.FOUR)) {
 				input += '4';
-			} else if (Input.just_pressed(Key.FIVE)) {
+			} else if (Input.justpressed(Key.FIVE)) {
 				input += '5';
-			} else if (Input.just_pressed(Key.SIX)) {
+			} else if (Input.justpressed(Key.SIX)) {
 				input += '6';
-			} else if (Input.just_pressed(Key.SEVEN)) {
+			} else if (Input.justpressed(Key.SEVEN)) {
 				input += '7';
-			} else if (Input.just_pressed(Key.EIGHT)) {
+			} else if (Input.justpressed(Key.EIGHT)) {
 				input += '8';
-			} else if (Input.just_pressed(Key.NINE)) {
+			} else if (Input.justpressed(Key.NINE)) {
 				input += '9';
-			} else if (Input.just_pressed(Key.PERIOD)) {
+			} else if (Input.justpressed(Key.PERIOD)) {
 				input += '.';
 			}
 		}

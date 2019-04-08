@@ -16,6 +16,14 @@ class Fontclass {
 			loadttffont(_name, _size);
 		}
 	}
+
+	public function updatebounds() {
+		tf_ttf.width = Gfx.screenwidth;
+		tf_ttf.height = Gfx.screenheight;
+		
+		tf_ttf.wordWrap = (Text.wordwrap > 0);
+		tf_ttf.width = (Text.wordwrap > 0)?Text.wordwrap:Gfx.screenwidth;
+	}
 	
 	public function loadbitmapfont(_name:String, _size:Float) {
 		name = _name;
@@ -27,7 +35,7 @@ class Fontclass {
 		
 		tf_bitmap.background = false;
 		
-		tfbitmap = new BitmapData(Gfx.screen_width, Gfx.screen_height, true, 0);
+		tfbitmap = new BitmapData(Gfx.screenwidth, Gfx.screenheight, true, 0);
 	}
 	
 	public function loadttffont(_name:String, _size:Float) {
@@ -38,8 +46,8 @@ class Fontclass {
 		tf_ttf.embedFonts = true;
 		tf_ttf.defaultTextFormat = new TextFormat(Text.getfonttypename(_name), Math.round(size), 0, false);
 		tf_ttf.selectable = false;
-		tf_ttf.width = Gfx.screen_width;
-		tf_ttf.height = Gfx.screen_height;
+		tf_ttf.width = Gfx.screenwidth;
+		tf_ttf.height = Gfx.screenheight;
 		// Taking this out for consistancy: only works on flash
 		//if (size <= 16) {
 			// tf_ttf.antiAliasType = AntiAliasType.ADVANCED; //Small fonts need proper antialiasing
@@ -48,8 +56,8 @@ class Fontclass {
 		//}
 		
 		tf_ttf.text = "???";
-		tfbitmap = new BitmapData(Gfx.screen_width, Gfx.screen_height, true, 0);
-		tf_ttf.height = Gfx.screen_height;
+		tfbitmap = new BitmapData(Gfx.screenwidth, Gfx.screenheight, true, 0);
+		tf_ttf.height = Gfx.screenheight;
 	}
 	
 	public function clearbitmap() {
