@@ -134,7 +134,7 @@ class Main {
         auto_editable('Bolt dmg = ', function set(x) { bolt_dmg = x; obj.data.bolt_dmg = x; obj.flush();}, bolt_dmg);
         auto_editable('Number of locks = ', function set(x) { number_of_locks = x; obj.data.number_of_locks = x; obj.flush();}, number_of_locks);
         auto_editable('World buffs crit = ', 
-            function set(x) { world_buffs_crit = Math.sign(x); obj.data.world_buffs_crit = Math.sign(x); obj.flush();}, world_buffs_crit);
+            function set(x) { world_buffs_crit = x; obj.data.world_buffs_crit = x; obj.flush();}, world_buffs_crit);
         auto_editable('Boss resistance= ', 
             function set(x) { boss_resistance = x; obj.data.boss_resistance = x; obj.flush();}, boss_resistance);
 
