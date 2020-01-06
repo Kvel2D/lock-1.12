@@ -172,9 +172,15 @@ class Main {
             crit += (int / INT_TO_CRIT) + world_buffs_crit + BASE_CRIT;
             var crit_chance = Math.min(1.0, crit / 100); 
 
-            // Get imp bonus unless 4 bolts before you failed to crit
-            // There's some additional intricacy with procs getting overwritten but it doesn't affect it much
-            var imp_bolt_bonus = ((crit_chance * hit_chance) * Math.pow(avg_lock_crit_chance, lock_count - 1));
+            // FORMULA EXPLANATION: get bonus if stacks > 0
+            // stacks > 0 unless 4 bolts before this one failed to crit(doesn't matter whose bolts)
+            // Therefore if bolts always crit, chance to miss is 0 and full 20% always applied => bonus is 1.2
+            // If bolts crit 25% of the time, then chance of 4 misses is 0.75^4=0.316
+            // 0.2 * (1 - 0.316) + 1 = 1.1368
+            var my_crit_with_hit = crit_chance * hit_chance;
+            var avg_crit_chance = (my_crit_with_hit + avg_lock_crit_chance * (lock_count - 1)) / lock_count;
+            var four_miss_chance = Math.pow((1.0 - avg_crit_chance), 4);
+            var imp_bolt_bonus = (1.0 - four_miss_chance) * 0.2 + 1.0;
             imp_bolt_bonus = Math.max(1.0, imp_bolt_bonus);
 
             // 
@@ -185,9 +191,6 @@ class Main {
             
             // Apply crit
             bolt = bolt * (1.0 - crit_chance) + bolt * 2 * crit_chance;
-
-            // Apply resistance
-            bolt = bolt * (1 - 0.75 * (Math.max(24, (boss_resistance - pen)) / (5 * 60)));
 
             // Corruption dmg
             // 15% dmg bonus from talents
