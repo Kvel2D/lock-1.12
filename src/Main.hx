@@ -33,7 +33,7 @@ class Main {
     static inline var BOLT_CAST_TIME = 2.5;
     static inline var CORR_COEFF = 1.0;
     static inline var CORR_CAST_TIME = GCD;
-    static inline var CORR_TICKS = 5;
+    static inline var CORR_TICKS = 6;
     static inline var CORR_TICK_PERIOD = 3.0;
     static inline var BURN_COEFF = 0.4285;
     static inline var BURN_CAST_TIME = GCD;
