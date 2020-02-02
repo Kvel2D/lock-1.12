@@ -1,8 +1,8 @@
 import haxegon.*;
+import GUI;
 import openfl.net.SharedObject;
 
-using haxegon.MathExtensions;
-using Lambda;
+using MathExtensions;
 
 typedef RaidStats = {
     bolts: Int,
@@ -81,7 +81,7 @@ var obj: SharedObject;
 var show_notes = false;
 
 function new() {
-    Gfx.resizescreen(1200, 960);
+    Text.size = 3;
     GUI.set_pallete(Col.GRAY, Col.NIGHTBLUE, Col.WHITE, Col.WHITE);
 
     // Load saved stats
@@ -113,20 +113,21 @@ function update() {
     GUI.text_button(0, 0, 'Toggle notes', function () { show_notes = !show_notes; });
     if (show_notes) {
         Text.wordwrap = 700;
-        Text.display(50, 50, 'Click on numbers to edit.\nRight click on slider to reset it.\nIntellect is total amount, the number that is shown in your character stats.\nCrit is from gear only, not including the base crit or the crit obtained from int or the crit from talents.\nSpell damage values are the ones in the spell tooltip(or average if 2 values).\nLock count includes you.\nStats for other locks are assumed to be equal to yours(without slider mods).\nTake counts/hits/casts from your typical raid on warcraftlogs');
+        Text.display(50, 50, 'Click on numbers to edit.\nRight click on slider to reset it.\nIntellect is total amount, the number that is shown in your character stats.\nCrit is from gear only, not including the base crit or the crit obtained from int or the crit from talents.\nSpell damage values are the ones in the spell tooltip(or average if 2 values).\nLock count includes you.\nStats for other locks are assumed to be equal to yours(without slider mods).\nTake counts/hits/casts from your typical raid on warcraftlogs.');
         return;
     }
 
     //
     // Mod sliders
     //
-    GUI.x = 400;
+    GUI.x = 370;
     GUI.y = 50;
-    var SLIDER_WIDTH = 700;
-    GUI.auto_slider("int", function(x: Float) { int_mod = Math.round(x); }, Math.round(int_mod), -50, 50, 10, SLIDER_WIDTH, 1);
-    GUI.auto_slider("sp", function(x: Float) { sp_mod = Math.round(x); }, Math.round(sp_mod), -50, 50, 10, SLIDER_WIDTH, 1);
-    GUI.auto_slider("crit", function(x: Float) { crit_mod = Math.round(x); }, Math.round(crit_mod), -5, 5, 10, SLIDER_WIDTH, 1);
-    GUI.auto_slider("hit", function(x: Float) { hit_mod = Math.round(x); }, Math.round(hit_mod), -5, 5, 10, SLIDER_WIDTH, 1);
+    var SLIDER_WIDTH = 800;
+    var HANDLE_WIDTH = 15;
+    GUI.auto_slider("int", function(x: Float) { int_mod = Math.round(x); }, Math.round(int_mod), -50, 50, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+    GUI.auto_slider("sp", function(x: Float) { sp_mod = Math.round(x); }, Math.round(sp_mod), -50, 50, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+    GUI.auto_slider("crit", function(x: Float) { crit_mod = Math.round(x); }, Math.round(crit_mod), -5, 5, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+    GUI.auto_slider("hit", function(x: Float) { hit_mod = Math.round(x); }, Math.round(hit_mod), -5, 5, HANDLE_WIDTH, SLIDER_WIDTH, 1);
 
     //
     // Editables
@@ -151,25 +152,28 @@ function update() {
     auto_editable('hit = ', function set(x) { stats.hit = x; obj.data.stats.hit = x; obj.flush();}, stats.hit);
 
     auto_heading("Stats:");
-    auto_editable('Bolt dmg = ', function set(x) { stats.bolt_dmg = x; obj.data.stats.bolt_dmg = x; obj.flush();}, stats.bolt_dmg);
-    auto_editable('Corruption dmg = ', function set(x) { stats.corr_dmg = x; obj.data.stats.corr_dmg = x; obj.flush();}, stats.corr_dmg);
-    auto_editable('Shadowburn dmg = ', function set(x) { stats.burn_dmg = x; obj.data.stats.burn_dmg = x; obj.flush();}, stats.burn_dmg);
-    auto_editable('Lock count = ', function set(x) { stats.lock_count = x; obj.data.stats.lock_count = x; obj.flush();}, stats.lock_count);
-    auto_editable('World buffs crit = ', function set(x) { stats.world_buffs_crit = x; obj.data.stats.world_buffs_crit = x; obj.flush();}, stats.world_buffs_crit);
+    auto_editable('bolt dmg = ', function set(x) { stats.bolt_dmg = x; obj.data.stats.bolt_dmg = x; obj.flush();}, stats.bolt_dmg);
+    auto_editable('corr dmg = ', function set(x) { stats.corr_dmg = x; obj.data.stats.corr_dmg = x; obj.flush();}, stats.corr_dmg);
+    auto_editable('burn dmg = ', function set(x) { stats.burn_dmg = x; obj.data.stats.burn_dmg = x; obj.flush();}, stats.burn_dmg);
+    auto_editable('lock count = ', function set(x) { stats.lock_count = x; obj.data.stats.lock_count = x; obj.flush();}, stats.lock_count);
+    auto_editable('wbuffs crit = ', function set(x) { stats.world_buffs_crit = x; obj.data.stats.world_buffs_crit = x; obj.flush();}, stats.world_buffs_crit);
 
+    var encounters_y = auto_editable_y;
     auto_heading("Encounters:");
-    auto_editable('Bolt casts = ', function set(x) { raid_boss.bolts = x; obj.data.raid_boss.bolts = x; obj.flush();}, raid_boss.bolts);
-    auto_editable('Corruption casts = ', function set(x) { raid_boss.corr_casts = x; obj.data.raid_boss.corr_casts = x; obj.flush();}, raid_boss.corr_casts);
-    auto_editable('Corruption hits = ', function set(x) { raid_boss.corrs = x; obj.data.raid_boss.corrs = x; obj.flush();}, raid_boss.corrs);
-    auto_editable('Burn casts = ', function set(x) { raid_boss.burns = x; obj.data.raid_boss.burns = x; obj.flush();}, raid_boss.burns);
-    auto_editable('Curse casts = ', function set(x) { raid_boss.curses = x; obj.data.raid_boss.curses = x; obj.flush();}, raid_boss.curses);
+    auto_editable('bolt casts = ', function set(x) { raid_boss.bolts = x; obj.data.raid_boss.bolts = x; obj.flush();}, raid_boss.bolts);
+    auto_editable('corr casts = ', function set(x) { raid_boss.corr_casts = x; obj.data.raid_boss.corr_casts = x; obj.flush();}, raid_boss.corr_casts);
+    auto_editable('corr hits = ', function set(x) { raid_boss.corrs = x; obj.data.raid_boss.corrs = x; obj.flush();}, raid_boss.corrs);
+    auto_editable('burn casts = ', function set(x) { raid_boss.burns = x; obj.data.raid_boss.burns = x; obj.flush();}, raid_boss.burns);
+    auto_editable('curse casts = ', function set(x) { raid_boss.curses = x; obj.data.raid_boss.curses = x; obj.flush();}, raid_boss.curses);
 
+    auto_editable_y = encounters_y;
+    auto_editable_x += 400;
     auto_heading("Trash:");
-    auto_editable('Bolt casts = ', function set(x) { raid_trash.bolts = x; obj.data.raid_trash.bolts = x; obj.flush();}, raid_trash.bolts);
-    auto_editable('Corruption casts = ', function set(x) { raid_trash.corr_casts = x; obj.data.raid_trash.corr_casts = x; obj.flush();}, raid_trash.corr_casts);
-    auto_editable('Corruption hits = ', function set(x) { raid_trash.corrs = x; obj.data.raid_trash.corrs = x; obj.flush();}, raid_trash.corrs);
-    auto_editable('Burn casts = ', function set(x) { raid_trash.burns = x; obj.data.raid_trash.burns = x; obj.flush();}, raid_trash.burns);
-    auto_editable('Curse casts = ', function set(x) { raid_trash.curses = x; obj.data.raid_trash.curses = x; obj.flush();}, raid_trash.curses);
+    auto_editable('bolt casts = ', function set(x) { raid_trash.bolts = x; obj.data.raid_trash.bolts = x; obj.flush();}, raid_trash.bolts);
+    auto_editable('corr casts = ', function set(x) { raid_trash.corr_casts = x; obj.data.raid_trash.corr_casts = x; obj.flush();}, raid_trash.corr_casts);
+    auto_editable('corr hits = ', function set(x) { raid_trash.corrs = x; obj.data.raid_trash.corrs = x; obj.flush();}, raid_trash.corrs);
+    auto_editable('burn casts = ', function set(x) { raid_trash.burns = x; obj.data.raid_trash.burns = x; obj.flush();}, raid_trash.burns);
+    auto_editable('curse casts = ', function set(x) { raid_trash.curses = x; obj.data.raid_trash.curses = x; obj.flush();}, raid_trash.curses);
 
     function calc_dps(modded: Bool, is_boss: Bool) {
         var int = stats.int;
@@ -292,9 +296,9 @@ function update() {
     //
     // Results
     //
-    var results_string = '';
-    results_string += '\nDefault dps: \t${Math.fixed_float(dps, 2)}';
-    results_string += '\nModified dps: \t${Math.fixed_float(dps_modded, 2)}';
-    Text.display(10, 30, results_string);
+    var results_string = 'DPS:';
+    results_string += '\ndefault: ${Math.fixed_float(dps, 2)}';
+    results_string += '\nmodded: ${Math.fixed_float(dps_modded, 2)}';
+    Text.display(10, 40, results_string);
 }
 }
