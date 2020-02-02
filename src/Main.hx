@@ -6,9 +6,10 @@ using Lambda;
 
 typedef RaidStats = {
     bolts: Int,
-    corrs: Int,
     corr_casts: Int,
-    burns: Int
+    corrs: Int,
+    burns: Int,
+    curses: Int,
 }
 
 typedef Stats = {
@@ -25,7 +26,6 @@ typedef Stats = {
 
 @:publicFields
 class Main {
-
     static inline var GCD = 1.5;
     static inline var INT_TO_CRIT = 60.6;
     static inline var BASE_CRIT = 6.7;
@@ -43,38 +43,38 @@ class Main {
     static inline var HIT_CHANCE_MAX = 0.99;
     static inline var CRIT_CHANCE_MAX = 1.0;
 
-    var stats = {
-        int: 0,
-        sp: 0,
-        crit: 0,
+    var stats: Stats = {
+        int: 300,
+        sp: 790,
+        crit: 1,
         hit: 0,
-        lock_count: 0,
-        world_buffs_crit: 0,
+        lock_count: 5,
+        world_buffs_crit: 18,
         bolt_dmg: 481.5,
-        corr_dmg: 666,
-        burn_dmg: 488
+        corr_dmg: 666.0,
+        burn_dmg: 488.0
     }
 
-    var raid_boss = {
-        bolts: 0,
-        corrs: 0,
-        corr_casts: 0,
-        burns: 0,
-        curses: 0,
+    var raid_boss: RaidStats = {
+        bolts: 99,
+        corr_casts: 19,
+        corrs: 90,
+        burns: 10,
+        curses: 11,
     };
-    var raid_trash = {
-        bolts: 0,
-        corrs: 0,
-        corr_casts: 0,
-        burns: 0,
-        curses: 0,
+    var raid_trash: RaidStats = {
+        bolts: 121,
+        corr_casts: 34,
+        corrs: 163,
+        burns: 42,
+        curses: 74,
     };
 
-    var int_mod = 0.0;
-    var crit_mod = 0.0;
-    var sp_mod = 0.0;
-    var hit_mod = 0.0;
-    
+    var int_mod = 0;
+    var crit_mod = 0;
+    var sp_mod = 0;
+    var hit_mod = 0;
+
     var obj: SharedObject;
     var show_notes = false;
 
@@ -169,7 +169,18 @@ class Main {
         auto_editable('Burn casts = ', function set(x) { raid_trash.burns = x; obj.data.raid_trash.burns = x; obj.flush();}, raid_trash.burns);
         auto_editable('Curse casts = ', function set(x) { raid_trash.curses = x; obj.data.raid_trash.curses = x; obj.flush();}, raid_trash.curses);
 
-        function calc_dps(int: Float, sp: Float, crit: Float, hit: Float, is_boss: Bool) {
+        function calc_dps(modded: Bool, is_boss: Bool) {
+            var int = stats.int;
+            var sp = stats.sp;
+            var crit = stats.crit;
+            var hit = stats.hit;
+            if (modded) {
+                int += int_mod;
+                sp += sp_mod;
+                crit += crit_mod;
+                hit += hit_mod;
+            }
+
             var base_hit = if (is_boss) {
                 BOSS_HIT;
             } else {
@@ -189,23 +200,28 @@ class Main {
             var hit_chance = (base_hit + hit) / 100;
             hit_chance = Math.min(HIT_CHANCE_MAX, hit_chance);
 
-            var crit_chance = (BASE_CRIT + crit + (stats.int / INT_TO_CRIT) + stats.world_buffs_crit) / 100;
+            var crit_chance = (BASE_CRIT + crit + (int / INT_TO_CRIT) + stats.world_buffs_crit) / 100;
             crit_chance = Math.min(CRIT_CHANCE_MAX, crit_chance); 
+
+            var crit_with_hit = crit_chance * hit_chance;
+            crit_with_hit = Math.min(CRIT_CHANCE_MAX, crit_with_hit);
 
             //
             // Imp bolt bonus
             //
 
-            // Calculate avg lock's crit chance
-            var other_crit_chance = (BASE_CRIT + stats.crit + (stats.int / INT_TO_CRIT) + stats.world_buffs_crit) / 100;
+            // Calculate avg lock's crit(with hit applied)
+            // NOTE: use unmodded hit/crit values here
+            var other_crit_chance = (BASE_CRIT + stats.crit + (int / INT_TO_CRIT) + stats.world_buffs_crit) / 100;
             other_crit_chance = Math.min(CRIT_CHANCE_MAX, other_crit_chance);
+
             var other_hit_chance = (base_hit + stats.hit) / 100;
             other_hit_chance = Math.min(HIT_CHANCE_MAX, other_hit_chance);
+            
             var other_crit_with_hit = other_crit_chance * other_hit_chance;
             other_crit_with_hit = Math.min(CRIT_CHANCE_MAX, other_crit_with_hit); 
-            var crit_with_hit = crit_chance * hit_chance;
-            crit_with_hit = Math.min(CRIT_CHANCE_MAX, crit_with_hit);
-            var avg_crit_chance = (crit_with_hit + other_crit_chance * (stats.lock_count - 1)) / stats.lock_count;
+            
+            var avg_crit_with_hit = (crit_with_hit + other_crit_with_hit * (stats.lock_count - 1)) / stats.lock_count;
 
             // Calculate imp bolt bonus
             // FORMULA EXPLANATION: get bonus if stacks > 0
@@ -213,7 +229,7 @@ class Main {
             // Therefore if bolts always crit, chance to miss is 0 and full 20% always applied => bonus is 1.2
             // If bolts crit 25% of the time, then chance of 4 misses is 0.75^4=0.316
             // 0.2 * (1 - 0.316) + 1 = 1.1368
-            var four_miss_chance = Math.pow((1.0 - avg_crit_chance), 4);
+            var four_miss_chance = Math.pow((1.0 - avg_crit_with_hit), 4);
             var imp_bolt_bonus = (1.0 - four_miss_chance) * 0.2 + 1.0;
             imp_bolt_bonus = Math.max(1.0, imp_bolt_bonus);
 
@@ -232,7 +248,7 @@ class Main {
             var unmodded_hit_chance = (base_hit + stats.hit) / 100;
             unmodded_hit_chance = Math.min(HIT_CHANCE_MAX, unmodded_hit_chance);
 
-            // Tricky hit calculations
+            // Tricky hit calculations ahead
 
             // Corruption/hit interaction
             // Avoided corruption misses count as additional ticks and bolt damage
@@ -244,7 +260,7 @@ class Main {
 
             // Curse/hit interactions
             // Avoided curse misses count as additional damage from bolts
-            // NOTE: technically avoided curse misses can also add corruption ticks but the bonus is small and is inconsistent for trash with few corruptions
+            // NOTE: technically avoided curse misses can also add corruption ticks but the effect is minor because the majority of curses are cast on trash where few corruptions are used
             var curses_without_misses = raid_stats.curses / (2.0 - unmodded_hit_chance);
             var curses_corrected = curses_without_misses * (2.0 - hit_chance);
             var curses_NOT_missed = raid_stats.curses - curses_corrected;
@@ -257,17 +273,18 @@ class Main {
 
             // Apply resistance
             // NOTE: only apply level-based resistance which is static for all mobs of that level
-            // Additional resistance is too varied and in almost all cases is comletely removed with curse
+            // Additional resistance is too varied and is almost always completely negated by curse
             dps = dps * (1 - 0.75 * level_resistance / 300);
 
             return dps;
         }
 
-        var dps_boss = calc_dps(stats.int, stats.sp, stats.crit, stats.hit, true);
-        var dps_trash = calc_dps(stats.int, stats.sp, stats.crit, stats.hit, false);
+        var dps_boss = calc_dps(false, true);
+        var dps_trash = calc_dps(false, false);
         var dps = (dps_boss + dps_trash) / 2;
-        var dps_modded_boss = calc_dps(stats.int + int_mod, stats.sp + sp_mod, stats.crit + crit_mod, stats.hit + hit_mod, true);
-        var dps_modded_trash = calc_dps(stats.int + int_mod, stats.sp + sp_mod, stats.crit + crit_mod, stats.hit + hit_mod, false);
+
+        var dps_modded_boss = calc_dps(true, true);
+        var dps_modded_trash = calc_dps(true, false);
         var dps_modded = (dps_modded_boss + dps_modded_trash) / 2;
 
         //
