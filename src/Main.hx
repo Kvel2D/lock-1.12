@@ -17,6 +17,9 @@ typedef Stats = {
     sp: Int,
     crit: Int,
     hit: Int,
+}
+
+typedef Vars = {
     lock_count: Int,
     world_buffs_crit: Int,
     bolt_dmg: Float,
@@ -45,11 +48,21 @@ static inline var TALENT_BONUS = 1.15;
 static inline var HIT_CHANCE_MAX = 0.99;
 static inline var CRIT_CHANCE_MAX = 1.0;
 
-var stats: Stats = {
+var trash_stats: Stats = {
     int: 300,
     sp: 790,
     crit: 1,
     hit: 0,
+}
+
+var boss_stats: Stats = {
+    int: 300,
+    sp: 790,
+    crit: 1,
+    hit: 0,
+}
+
+var vars: Vars = {
     lock_count: 5,
     world_buffs_crit: 18,
     bolt_dmg: 481.5,
@@ -72,25 +85,47 @@ var raid_trash: RaidStats = {
     curses: 74,
 };
 
-var int_mod = 0;
-var crit_mod = 0;
-var sp_mod = 0;
-var hit_mod = 0;
+var boss_mods: Stats = {
+    int: 0,
+    sp: 0,
+    crit: 0,
+    hit: 0,
+};
+
+var trash_mods: Stats = {
+    int: 0,
+    sp: 0,
+    crit: 0,
+    hit: 0,
+};
 
 var obj: SharedObject;
 var show_notes = false;
+var split_mods = true;
 
 function new() {
     Text.size = 3;
     GUI.set_pallete(Col.GRAY, Col.NIGHTBLUE, Col.WHITE, Col.WHITE);
 
-    // Load saved stats
-    obj = SharedObject.getLocal("stats");
-    if (obj.data.stats == null) {
-        obj.data.stats = stats;
+    // Load saved things
+    obj = SharedObject.getLocal("lock-sim-data");
+    if (obj.data.vars == null) {
+        obj.data.vars = vars;
         obj.flush();
     } else {
-        stats = obj.data;
+        vars = obj.data.vars;
+    }
+    if (obj.data.boss_stats == null) {
+        obj.data.boss_stats = boss_stats;
+        obj.flush();
+    } else {
+        boss_stats = obj.data.boss_stats;
+    }
+    if (obj.data.trash_stats == null) {
+        obj.data.trash_stats = trash_stats;
+        obj.flush();
+    } else {
+        trash_stats = obj.data.trash_stats;
     }
     if (obj.data.raid_boss == null) {
         obj.data.raid_boss = raid_boss;
@@ -111,6 +146,7 @@ function update() {
 
     // Notes
     GUI.text_button(0, 0, 'Toggle notes', function () { show_notes = !show_notes; });
+    GUI.text_button(0, Text.height() + 20, 'Split mods: ${if (split_mods) 'ON' else 'OFF'}', function () { split_mods = !split_mods; });
     if (show_notes) {
         Text.wordwrap = 700;
         Text.display(50, 50, 'Click on numbers to edit.\nRight click on slider to reset it.\nIntellect is total amount, the number that is shown in your character stats.\nCrit is from gear only, not including the base crit or the crit obtained from int or the crit from talents.\nSpell damage values are the ones in the spell tooltip(or average if 2 values).\nLock count includes you.\nStats for other locks are assumed to be equal to yours(without slider mods).\nTake counts/hits/casts from your typical raid on warcraftlogs.');
@@ -121,19 +157,41 @@ function update() {
     // Mod sliders
     //
     GUI.x = 370;
-    GUI.y = 50;
-    var SLIDER_WIDTH = 800;
+    GUI.y = 10;
+    var SLIDER_WIDTH = 500;
     var HANDLE_WIDTH = 15;
-    GUI.auto_slider("int", function(x: Float) { int_mod = Math.round(x); }, Math.round(int_mod), -50, 50, HANDLE_WIDTH, SLIDER_WIDTH, 1);
-    GUI.auto_slider("sp", function(x: Float) { sp_mod = Math.round(x); }, Math.round(sp_mod), -50, 50, HANDLE_WIDTH, SLIDER_WIDTH, 1);
-    GUI.auto_slider("crit", function(x: Float) { crit_mod = Math.round(x); }, Math.round(crit_mod), -5, 5, HANDLE_WIDTH, SLIDER_WIDTH, 1);
-    GUI.auto_slider("hit", function(x: Float) { hit_mod = Math.round(x); }, Math.round(hit_mod), -5, 5, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+    var trash_slider_x = GUI.x;
+    if (split_mods) {
+        Text.display(GUI.x, GUI.y, 'TRASH');
+    }
+    GUI.auto_slider("int", function(x: Float) { trash_mods.int = Math.round(x); }, Math.round(trash_mods.int), -50, 50, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+    GUI.auto_slider("sp", function(x: Float) { trash_mods.sp = Math.round(x); }, Math.round(trash_mods.sp), -50, 50, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+    GUI.auto_slider("crit", function(x: Float) { trash_mods.crit = Math.round(x); }, Math.round(trash_mods.crit), -5, 5, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+    GUI.auto_slider("hit", function(x: Float) { trash_mods.hit = Math.round(x); }, Math.round(trash_mods.hit), -5, 5, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+
+    GUI.x = 370 + SLIDER_WIDTH + 80;
+    GUI.y = 10;
+    var boss_slider_x = GUI.x;
+    if (split_mods) {
+        Text.display(GUI.x, GUI.y, 'BOSS');
+        GUI.auto_slider("int", function(x: Float) { boss_mods.int = Math.round(x); }, Math.round(boss_mods.int), -50, 50, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+        GUI.auto_slider("sp", function(x: Float) { boss_mods.sp = Math.round(x); }, Math.round(boss_mods.sp), -50, 50, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+        GUI.auto_slider("crit", function(x: Float) { boss_mods.crit = Math.round(x); }, Math.round(boss_mods.crit), -5, 5, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+        GUI.auto_slider("hit", function(x: Float) { boss_mods.hit = Math.round(x); }, Math.round(boss_mods.hit), -5, 5, HANDLE_WIDTH, SLIDER_WIDTH, 1);
+    }
+
+    if (!split_mods) {
+        boss_mods.int = trash_mods.int;
+        boss_mods.sp = trash_mods.sp;
+        boss_mods.crit = trash_mods.crit;
+        boss_mods.hit = trash_mods.hit;
+    }
 
     //
     // Editables
     //
-    var auto_editable_x = 10;
-    var auto_editable_y = 120;
+    var auto_editable_x = 10.0;
+    var auto_editable_y = 120.0;
     var AUTO_EDITABLE_SPACING = 30;
     function auto_editable(text: String, set_function: Dynamic->Void, current: Dynamic) {
         GUI.editable_number(auto_editable_x, auto_editable_y, text, set_function, current);
@@ -145,20 +203,21 @@ function update() {
         auto_editable_y += AUTO_EDITABLE_SPACING;
     }
 
-    auto_heading("Character stats:");
-    auto_editable('int = ', function set(x) { stats.int = x; obj.data.stats.int = x; obj.flush();}, stats.int);
-    auto_editable('sp = ', function set(x) { stats.sp = x; obj.data.stats.sp = x; obj.flush();}, stats.sp);
-    auto_editable('crit = ', function set(x) { stats.crit = x; obj.data.stats.crit = x; obj.flush();}, stats.crit);
-    auto_editable('hit = ', function set(x) { stats.hit = x; obj.data.stats.hit = x; obj.flush();}, stats.hit);
+    auto_editable_y += 350;
+    auto_editable('bolt dmg = ', function set(x) { vars.bolt_dmg = x; obj.data.vars.bolt_dmg = x; obj.flush();}, vars.bolt_dmg);
+    auto_editable('corr dmg = ', function set(x) { vars.corr_dmg = x; obj.data.vars.corr_dmg = x; obj.flush();}, vars.corr_dmg);
+    auto_editable('burn dmg = ', function set(x) { vars.burn_dmg = x; obj.data.vars.burn_dmg = x; obj.flush();}, vars.burn_dmg);
+    auto_editable('lock count = ', function set(x) { vars.lock_count = x; obj.data.vars.lock_count = x; obj.flush();}, vars.lock_count);
+    auto_editable('wbuffs crit = ', function set(x) { vars.world_buffs_crit = x; obj.data.vars.world_buffs_crit = x; obj.flush();}, vars.world_buffs_crit);
 
-    auto_heading("Stats:");
-    auto_editable('bolt dmg = ', function set(x) { stats.bolt_dmg = x; obj.data.stats.bolt_dmg = x; obj.flush();}, stats.bolt_dmg);
-    auto_editable('corr dmg = ', function set(x) { stats.corr_dmg = x; obj.data.stats.corr_dmg = x; obj.flush();}, stats.corr_dmg);
-    auto_editable('burn dmg = ', function set(x) { stats.burn_dmg = x; obj.data.stats.burn_dmg = x; obj.flush();}, stats.burn_dmg);
-    auto_editable('lock count = ', function set(x) { stats.lock_count = x; obj.data.stats.lock_count = x; obj.flush();}, stats.lock_count);
-    auto_editable('wbuffs crit = ', function set(x) { stats.world_buffs_crit = x; obj.data.stats.world_buffs_crit = x; obj.flush();}, stats.world_buffs_crit);
+    auto_editable_x = boss_slider_x;
+    auto_editable_y = 400;
+    auto_heading("Encounter stats:");
+    auto_editable('int = ', function set(x) { boss_stats.int = x; obj.data.boss_stats.int = x; obj.flush();}, boss_stats.int);
+    auto_editable('sp = ', function set(x) { boss_stats.sp = x; obj.data.boss_stats.sp = x; obj.flush();}, boss_stats.sp);
+    auto_editable('crit = ', function set(x) { boss_stats.crit = x; obj.data.boss_stats.crit = x; obj.flush();}, boss_stats.crit);
+    auto_editable('hit = ', function set(x) { boss_stats.hit = x; obj.data.boss_stats.hit = x; obj.flush(); }, boss_stats.hit);
 
-    var encounters_y = auto_editable_y;
     auto_heading("Encounters:");
     auto_editable('bolt casts = ', function set(x) { raid_boss.bolts = x; obj.data.raid_boss.bolts = x; obj.flush();}, raid_boss.bolts);
     auto_editable('corr casts = ', function set(x) { raid_boss.corr_casts = x; obj.data.raid_boss.corr_casts = x; obj.flush();}, raid_boss.corr_casts);
@@ -166,8 +225,14 @@ function update() {
     auto_editable('burn casts = ', function set(x) { raid_boss.burns = x; obj.data.raid_boss.burns = x; obj.flush();}, raid_boss.burns);
     auto_editable('curse casts = ', function set(x) { raid_boss.curses = x; obj.data.raid_boss.curses = x; obj.flush();}, raid_boss.curses);
 
-    auto_editable_y = encounters_y;
-    auto_editable_x += 400;
+    auto_editable_x = trash_slider_x;
+    auto_editable_y = 400;
+    auto_heading("Trash stats:");
+    auto_editable('int = ', function set(x) { trash_stats.int = x; obj.data.trash_stats.int = x; obj.flush();}, trash_stats.int);
+    auto_editable('sp = ', function set(x) { trash_stats.sp = x; obj.data.trash_stats.sp = x; obj.flush();}, trash_stats.sp);
+    auto_editable('crit = ', function set(x) { trash_stats.crit = x; obj.data.trash_stats.crit = x; obj.flush();}, trash_stats.crit);
+    auto_editable('hit = ', function set(x) { trash_stats.hit = x; obj.data.trash_stats.hit = x; obj.flush();}, trash_stats.hit);
+
     auto_heading("Trash:");
     auto_editable('bolt casts = ', function set(x) { raid_trash.bolts = x; obj.data.raid_trash.bolts = x; obj.flush();}, raid_trash.bolts);
     auto_editable('corr casts = ', function set(x) { raid_trash.corr_casts = x; obj.data.raid_trash.corr_casts = x; obj.flush();}, raid_trash.corr_casts);
@@ -176,15 +241,26 @@ function update() {
     auto_editable('curse casts = ', function set(x) { raid_trash.curses = x; obj.data.raid_trash.curses = x; obj.flush();}, raid_trash.curses);
 
     function calc_dps(modded: Bool, is_boss: Bool) {
+        var stats = if (is_boss) {
+            boss_stats;
+        } else {
+            trash_stats;
+        }
+        var mods = if (is_boss) {
+            boss_mods;
+        } else {
+            trash_mods;
+        }
+
         var int = stats.int;
         var sp = stats.sp;
         var crit = stats.crit;
         var hit = stats.hit;
         if (modded) {
-            int += int_mod;
-            sp += sp_mod;
-            crit += crit_mod;
-            hit += hit_mod;
+            int += mods.int;
+            sp += mods.sp;
+            crit += mods.crit;
+            hit += mods.hit;
         }
 
         var base_hit = if (is_boss) {
@@ -206,7 +282,7 @@ function update() {
         var hit_chance = (base_hit + hit) / 100;
         hit_chance = Math.min(HIT_CHANCE_MAX, hit_chance);
 
-        var crit_chance = (BASE_CRIT + crit + (int / INT_TO_CRIT) + stats.world_buffs_crit) / 100;
+        var crit_chance = (BASE_CRIT + crit + (int / INT_TO_CRIT) + vars.world_buffs_crit) / 100;
         crit_chance = Math.min(CRIT_CHANCE_MAX, crit_chance); 
 
         var crit_with_hit = crit_chance * hit_chance;
@@ -218,7 +294,7 @@ function update() {
 
         // Calculate avg lock's crit(with hit applied)
         // NOTE: use unmodded hit/crit values here
-        var other_crit_chance = (BASE_CRIT + stats.crit + (int / INT_TO_CRIT) + stats.world_buffs_crit) / 100;
+        var other_crit_chance = (BASE_CRIT + stats.crit + (int / INT_TO_CRIT) + vars.world_buffs_crit) / 100;
         other_crit_chance = Math.min(CRIT_CHANCE_MAX, other_crit_chance);
 
         var other_hit_chance = (base_hit + stats.hit) / 100;
@@ -227,7 +303,7 @@ function update() {
         var other_crit_with_hit = other_crit_chance * other_hit_chance;
         other_crit_with_hit = Math.min(CRIT_CHANCE_MAX, other_crit_with_hit); 
         
-        var avg_crit_with_hit = (crit_with_hit + other_crit_with_hit * (stats.lock_count - 1)) / stats.lock_count;
+        var avg_crit_with_hit = (crit_with_hit + other_crit_with_hit * (vars.lock_count - 1)) / vars.lock_count;
 
         // Calculate imp bolt bonus
         // FORMULA EXPLANATION: get bonus if stacks > 0
@@ -240,14 +316,14 @@ function update() {
         imp_bolt_bonus = Math.max(1.0, imp_bolt_bonus);
 
         // Bolt dmg
-        var bolt = (stats.bolt_dmg + sp * BOLT_COEFF) * TALENT_BONUS * imp_bolt_bonus;
+        var bolt = (vars.bolt_dmg + sp * BOLT_COEFF) * TALENT_BONUS * imp_bolt_bonus;
         // Apply crit
         bolt = bolt * (1.0 - crit_chance) + bolt * 2 * crit_chance;
 
         // Corruption dmg (per tick)
-        var corr = (stats.corr_dmg + sp * CORR_COEFF) * TALENT_BONUS / CORR_TICKS;
+        var corr = (vars.corr_dmg + sp * CORR_COEFF) * TALENT_BONUS / CORR_TICKS;
 
-        var burn = (stats.burn_dmg + sp * BURN_COEFF) * TALENT_BONUS * imp_bolt_bonus;
+        var burn = (vars.burn_dmg + sp * BURN_COEFF) * TALENT_BONUS * imp_bolt_bonus;
         // Apply crit
         burn = burn * (1.0 - crit_chance) + burn * 2 * crit_chance;
 
@@ -299,6 +375,6 @@ function update() {
     var results_string = 'DPS:';
     results_string += '\ndefault: ${Math.fixed_float(dps, 2)}';
     results_string += '\nmodded: ${Math.fixed_float(dps_modded, 2)}';
-    Text.display(10, 40, results_string);
+    Text.display(10, 100, results_string);
 }
 }
