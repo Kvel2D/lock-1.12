@@ -22,6 +22,7 @@ typedef Stats = {
 typedef Vars = {
     lock_count: Int,
     world_buffs_crit: Int,
+    suppression_hit: Int,
     bolt_dmg: Float,
     corr_dmg: Float,
     burn_dmg: Float
@@ -65,6 +66,7 @@ var boss_stats: Stats = {
 var vars: Vars = {
     lock_count: 5,
     world_buffs_crit: 18,
+    suppression_hit: 4,
     bolt_dmg: 481.5,
     corr_dmg: 666.0,
     burn_dmg: 488.0
@@ -209,6 +211,7 @@ function update() {
     auto_editable('burn dmg = ', function set(x) { vars.burn_dmg = x; obj.data.vars.burn_dmg = x; obj.flush();}, vars.burn_dmg);
     auto_editable('lock count = ', function set(x) { vars.lock_count = x; obj.data.vars.lock_count = x; obj.flush();}, vars.lock_count);
     auto_editable('wbuffs crit = ', function set(x) { vars.world_buffs_crit = x; obj.data.vars.world_buffs_crit = x; obj.flush();}, vars.world_buffs_crit);
+    auto_editable('suppression hit = ', function set(x) { vars.suppression_hit = x; obj.data.vars.suppression_hit = x; obj.flush();}, vars.suppression_hit);
 
     auto_editable_x = boss_slider_x;
     auto_editable_y = 400;
@@ -263,6 +266,8 @@ function update() {
             hit += mods.hit;
         }
 
+        var aff_hit = hit + vars.suppression_hit;
+
         var base_hit = if (is_boss) {
             BOSS_HIT;
         } else {
@@ -281,6 +286,9 @@ function update() {
 
         var hit_chance = (base_hit + hit) / 100;
         hit_chance = Math.min(HIT_CHANCE_MAX, hit_chance);
+
+        var aff_hit_chance = (base_hit + aff_hit) / 100;
+        aff_hit_chance = Math.min(HIT_CHANCE_MAX, aff_hit_chance);
 
         var crit_chance = (BASE_CRIT + crit + (int / INT_TO_CRIT) + vars.world_buffs_crit) / 100;
         crit_chance = Math.min(CRIT_CHANCE_MAX, crit_chance); 
@@ -327,15 +335,15 @@ function update() {
         // Apply crit
         burn = burn * (1.0 - crit_chance) + burn * 2 * crit_chance;
 
-        var unmodded_hit_chance = (base_hit + stats.hit) / 100;
-        unmodded_hit_chance = Math.min(HIT_CHANCE_MAX, unmodded_hit_chance);
+        var unmodded_aff_hit_chance = (base_hit + stats.hit + vars.suppression_hit) / 100;
+        unmodded_aff_hit_chance = Math.min(HIT_CHANCE_MAX, unmodded_aff_hit_chance);
 
         // Tricky hit calculations ahead
 
         // Corruption/hit interaction
         // Avoided corruption misses count as additional ticks and bolt damage
-        var corr_casts_without_misses = raid_stats.corr_casts / (2.0 - unmodded_hit_chance);
-        var corr_casts_corrected = corr_casts_without_misses * (2.0 - hit_chance);
+        var corr_casts_without_misses = raid_stats.corr_casts / (2.0 - unmodded_aff_hit_chance);
+        var corr_casts_corrected = corr_casts_without_misses * (2.0 - aff_hit_chance);
         var corrs_NOT_missed = raid_stats.corr_casts - corr_casts_corrected;
         var extra_corrs = corrs_NOT_missed * CORR_CAST_TIME / CORR_TICK_PERIOD;
         var extra_bolts = GCD * corrs_NOT_missed / BOLT_CAST_TIME;
@@ -343,8 +351,8 @@ function update() {
         // Curse/hit interactions
         // Avoided curse misses count as additional damage from bolts
         // NOTE: technically avoided curse misses can also add corruption ticks but the effect is minor because the majority of curses are cast on trash where few corruptions are used
-        var curses_without_misses = raid_stats.curses / (2.0 - unmodded_hit_chance);
-        var curses_corrected = curses_without_misses * (2.0 - hit_chance);
+        var curses_without_misses = raid_stats.curses / (2.0 - unmodded_aff_hit_chance);
+        var curses_corrected = curses_without_misses * (2.0 - aff_hit_chance);
         var curses_NOT_missed = raid_stats.curses - curses_corrected;
         extra_bolts += GCD * curses_NOT_missed / BOLT_CAST_TIME;
 
