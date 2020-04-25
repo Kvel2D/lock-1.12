@@ -13,6 +13,8 @@ typedef Vars = {
     lock_count: Int,
     world_buffs_crit: Int,
     bolt_dmg: Float,
+    kings: Int,
+    heart: Int,
 }
 
 @:publicFields
@@ -27,6 +29,8 @@ static inline var TRASH_HIT = 94;
 static inline var TALENT_BONUS = 1.15;
 static inline var HIT_CHANCE_MAX = 0.99;
 static inline var CRIT_CHANCE_MAX = 1.0;
+static inline var KINGS_INT_BONUS = 1.15;
+static inline var HEART_INT_BONUS = 1.1;
 
 var trash_stats: Stats = {
     int: 300,
@@ -60,6 +64,8 @@ var vars: Vars = {
     lock_count: 5,
     world_buffs_crit: 18,
     bolt_dmg: 481.5,
+    kings: 0,
+    heart: 0,
 }
 
 var obj: SharedObject;
@@ -158,6 +164,8 @@ function update() {
     auto_editable('bolt dmg: ', function set(x) { vars.bolt_dmg = x; obj.data.vars.bolt_dmg = x; obj.flush();}, vars.bolt_dmg);
     auto_editable('lock count: ', function set(x) { vars.lock_count = x; obj.data.vars.lock_count = x; obj.flush();}, vars.lock_count);
     auto_editable('wbuffs crit: ', function set(x) { vars.world_buffs_crit = x; obj.data.vars.world_buffs_crit = x; obj.flush();}, vars.world_buffs_crit);
+    auto_editable('kings on: ', function set(x) { vars.kings = x; obj.data.vars.kings = x; obj.flush();}, vars.kings);
+    auto_editable('heart on: ', function set(x) { vars.heart = x; obj.data.vars.heart = x; obj.flush();}, vars.heart);
 
     auto_editable_x = boss_slider_x;
     auto_editable_y = 400;
@@ -197,6 +205,15 @@ function update() {
             crit += mods.crit;
             hit += mods.hit;
         }
+
+        var int_bonus_from_buffs = 1.0;
+        if (vars.kings == 1) {
+            int_bonus_from_buffs *= KINGS_INT_BONUS;
+        }
+        if (vars.heart == 1) {
+            int_bonus_from_buffs *= HEART_INT_BONUS;
+        }
+        int = Math.round(int * int_bonus_from_buffs);
 
         var base_hit = if (is_boss) {
             BOSS_HIT;
